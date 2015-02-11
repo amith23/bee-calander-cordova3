@@ -1,0 +1,17 @@
+Implement swapping event ---- > done .
+Fix issue of averlapping tr  --- > done
+refactor code;
+change icon back ground to white 
+push to bit bucket;
+intoduce data base support;
+give notification about the date.
+
+adding notes.
+
+notify notes for given time .
+
+notify notes at given location.
+
+
+
+hg push https://amith23@bitbucket.org/amith23/bee-calendar
