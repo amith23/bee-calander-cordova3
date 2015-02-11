@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<!-- Mobile viewport optimized -->
+<meta name="viewport"
+	content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<head>
+<title>Sri Lanka Calendar</title>
+
+<link rel="stylesheet" href="./css/bootstrap/3.3.1/bootstrap.min.css">
+<link rel="stylesheet"
+	href="./css/bootstrap/3.3.1/bootstrap-clockpicker.min.css">
+<link rel="stylesheet"
+	href="./css/bootstrap/3.3.1/bootstrap-theme.min.css">
+
+<!--  script type="text/javascript" src="./js/cordova/cordova-2.4.0.js"></script-->
+<script type="text/javascript" src="./js/jq/jquery.min.js"></script>
+<script type="text/javascript" src="./js/bootstrap/bootstrap.min.js"></script>
+<script type="text/javascript" src="./js/bootstrap/moment.js"></script>
+<script src="./js/bootstrap/bootstrap-datetimepicker.js"
+	type="text/javascript"></script>
+<script type="text/javascript" src="./js/jstorage/json2.js"></script>
+<script type="text/javascript" src="./js/jstorage/jstorage.js"></script>
+
+<script type="text/javascript" src="./js/app/data.js"></script>
+<script type="text/javascript" src="./js/app/app.js"></script>
+<script type="text/javascript" src="./js/app/database_utill.js"></script>
+
+<style>
+.bootstrap-datetimepicker-widget {
+	z-index: 1151 !important;
+}
+
+#img_id {
+	width: 15px;
+	height: 15px;
+}
+
+#img_id2 {
+	width: 15px;
+	height: 15px;
+}
+#img_id3 {
+	width: 30px;
+	height: 30px;
+}
+</style>
+<script>
+	var today;
+	var this_year;
+	var this_month;
+	var weeks_per_this_month = 5;
+	var current_month;
+	var current_date;
+	var current_year;
+	var num_days_in_month;
+	var days;
+	var num_weeks_in_month;
+	var day1;
+	var last_day;
+	var maxDCount;
+	var clickedDate;
+	var currentMonthIndex; // this will go up and down for month navigation
+	var noteKey = "";
+	var longTouch = 0;
+/*	
+	function testNotification(){
+		
+		
+		
+		cordova.exec(
+				function(winParam) {
+		}, 
+		function(error) {
+		}, "CoreServicePlugin", "INITALIZE", [ "firstArgument", "secondArgument",
+				42, false ]);
+		
+		/*
+        cordova.exec(
+                successCallback, // success callback function
+                errorCallback, // error callback function
+                'Echo', // mapped to our native Java class called "Calendar"
+                'echo', // with this action name
+                [{                  // and this array of custom arguments to create our entry
+                    "title": "title"
+                }]
+            );
+		
+	}
+
+	function successCallback(){
+		
+	alert('success ... ');	
+	}
+	
+	function errorCallback(){
+		
+		alert('error ..... ');
+	}*/
+	
+	window.onload = function() {
+
+	//	testNotification();
+		
+		if (isLocalStorageSupport()) {
+			intialize_data_set();
+			//flushDOMData();
+		}
+
+		today = new Date();
+
+		this_month = today.getMonth();
+		//this_month = 0;
+		this_year = today.getFullYear();
+		//this_year += 1;
+		currentMonthIndex = this_month;
+
+		num_days_in_month = new Date(this_year, this_month + 1, 0).getDate();
+		days = num_days_in_month;
+		var fd = new Date(this_year, this_month, 1).getDay();
+		var x = (num_days_in_month - (7 - fd));
+		num_weeks_in_month = Math.ceil(x / 7) + 1
+
+		maxDCount = (num_weeks_in_month * 7);
+
+		var d1 = new Date(this_year, this_month, 1);
+		this_month = d1.getMonth();
+		paintBasicInfo();
+		drawGrid(fd);
+		init();
+	};
+
+	$('#exampleModal').on('show.bs.modal', function(event) {
+		var button = $(event.relatedTarget) // Button that triggered the modal
+		var recipient = button.data('whatever') // Extract info from data-* attributes
+		// If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+		// Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+		var modal = $(this)
+		modal.find('.modal-title').text('New message to sssss ' + recipient)
+		modal.find('.modal-body input').val(recipient)
+	});
+</script>
+
+</head>
+
+<body
+	style="overflow: hidden; font-weight: bold; font-family: 'Times New Roman', Times, serif; font-size-adjust: 5;"false">
+	<div class="panel panel-success" id="main_section">
+		<!-- Default panel contents -->
+		<div class="panel-heading" style="width: 100%; padding: 0; margin: 0;"
+			id="phead">
+			<div class="btn-group btn-group-justified" role="group"
+				aria-label="...">
+				<div class="btn-group" role="group" style="align: center">
+					<div class="col-md-4">
+						<img src=".\img\glyphicons\png\glyphicons-222-unshare.png" alt=""
+							style="opacity: 1; align: center;" onclick="backward()">
+					</div>
+				</div>
+				<div class="btn-group" role="group" style="align: center">
+					<div class="col-md-4">
+						<div id="currentYear"></div>
+						</br>
+						<div id="currentMonth"></div>
+					</div>
+				</div>
+				<div class="btn-group" role="group">
+					<div class="col-md-4" style="align: center">
+						<img src=".\img\glyphicons\png\glyphicons-223-share.png" alt=""
+							style="opacity: 1; align: center;" onclick="forward()">
+					</div>
+				</div>
+			</div>
+
+		</div>
+		<div id="table_div" style="width: 100%; padding: 0; margin: 0;"></div>
+
+	</div>
+
+	<!--  modal -->
+
+	<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog"
+		aria-labelledby="exampleModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+
+				<div class="modal-header" id="mhead">
+					<button type="button" class="close" data-dismiss="modal">
+						<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+					</button>
+				</div>
+				<div class="modal-body" id="mbody">
+					<h4 class="modal-title" id="exampleModalLabel">""</h4>
+				</div>
+
+			</div>
+
+		</div>
+	</div>
+
+	<!-- test modal -->
+
+
+	<!-- end of test modal -->
+
+	<!-- basic mode to display add notes -->
+	<div class="modal fade out" id="noteModal" tabindex="-1" role="dialog"
+		aria-labelledby="noteModal" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">
+						<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+					</button>
+					<h4 class="modal-title" id="myModalLabel">Save your
+						notes,events....</h4>
+				</div>
+				<div class="modal-body">
+					<div class='col-sm-6'>
+						<div class="form-group">
+							<label for="message-text" class="control-label">Note or
+								Event</label>
+							<textarea class="form-control" id="message-text"></textarea>
+						</div>
+						<div class="form-group">
+							<label for="datetimepicker4" class="control-label">Set
+								time</label>
+							<div class='input-group date' id='datetimepicker4'>
+
+								<input type='text' class="form-control" id="time_pick"
+									placeholder="Click clock icon to set time." /> <span
+									class="input-group-addon"><span
+									class="glyphicon glyphicon-time"></span> </span>
+							</div>
+						</div>
+
+						<label>Notify Me</label><br /> <select
+							class="form-control singleselect" id="notify-range"
+							style="width: 170px;" placeholder="Enter Name">
+							<option value="0">On Time</option>
+							<option value="-30">Before 30 minutes</option>
+							<option value="-60">Before 60 minutes</option>
+							<option value="+30">After 30 minutes</option>
+							<option value="+60">After 60 minutes</option>
+						</select>
+					</div>
+					<script type="text/javascript">
+						$(function() {
+							$('#datetimepicker4').datetimepicker({
+								pickDate : false
+							});
+						});
+					</script>
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" onclick="addNote()"
+						data-dismiss="modal">Add</button>
+				</div>
+			</div>
+			<div id="alert_placeholder"></div>
+		</div>
+		<script>
+			$('#noteModal').on('hide.bs.modal', function() {
+				redrawCurrentPage();
+			});
+
+			$('#noteModal').on('shown.bs.modal', function() {
+				$("#message-text").val("");
+				$("#time_pick").val("");
+
+			});
+
+			$('#exampleModal').on('show.bs.modal', function(e) {
+
+				if (longTouch == 1) {
+					// stops modal from being shown
+					return e.preventDefault();
+				}
+
+			});
+		</script>
+	</div>
+	<!-- end of add notes modal -->
+</body>
+</html>
